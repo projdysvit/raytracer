@@ -3,6 +3,9 @@
 ## Overview
 The Raytracer project is a GPU-accelerated ray tracing engine implemented in Rust using the wgpu graphics API.
 
+## Preview
+![image](https://i.imgur.com/vniH2aj.png)
+
 ## Key Features
 - Real-time ray tracing
 - GPU acceleration via wgpu
