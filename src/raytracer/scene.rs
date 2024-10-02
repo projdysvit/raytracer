@@ -48,22 +48,47 @@ struct Light {
     intensity: f32
 }
 
-pub struct Scene;
+pub struct Scene {
+    light: Light,
+    light_rotation_angle: f32
+}
 
 impl Scene {
-    pub fn get_sphere_buffer(device: &wgpu::Device) -> wgpu::Buffer {
+    pub fn new() -> Self {
+        Self {
+            light: LIGHT,
+            light_rotation_angle: 0.0
+        }
+    }
+
+    pub fn get_sphere_buffer(&self, device: &wgpu::Device) -> wgpu::Buffer {
         device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Spheres buffer"),
             contents: bytemuck::cast_slice(&SPHERES),
             usage: wgpu::BufferUsages::STORAGE
         })
     }
-
-    pub fn get_light_buffer(device: &wgpu::Device) -> wgpu::Buffer {
+    
+    pub fn get_light_buffer(&self, device: &wgpu::Device) -> wgpu::Buffer {
         device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Light buffer"),
-            contents: bytemuck::cast_slice(&[LIGHT]),
-            usage: wgpu::BufferUsages::STORAGE
+            contents: bytemuck::cast_slice(&[self.light]),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST
         })
+    }
+
+    pub fn light_update(&mut self) {
+        let rotation_speed = 0.5;
+        let delta_time = 0.01;
+        let orbit_radius = 150.0;
+
+        self.light_rotation_angle += rotation_speed * delta_time;
+
+        self.light.position[0] = orbit_radius * self.light_rotation_angle.cos();
+        self.light.position[2] = orbit_radius * self.light_rotation_angle.sin();
+    }
+
+    pub fn update_light_buffer(&self, queue: &wgpu::Queue, buffer: &wgpu::Buffer) {
+        queue.write_buffer(buffer, 0, bytemuck::cast_slice(&[self.light]));
     }
 }

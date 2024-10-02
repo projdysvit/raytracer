@@ -55,7 +55,7 @@ const EPSILON: f32 = 0.001;
 
 @group(0) @binding(0) var<uniform> camera: CameraUniform;
 @group(0) @binding(1) var<storage, read> spheres: array<Sphere>;
-@group(0) @binding(2) var<storage, read> light: Light;
+@group(0) @binding(2) var<uniform> light: Light;
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {

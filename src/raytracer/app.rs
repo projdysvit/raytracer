@@ -15,7 +15,9 @@ pub struct Application<'a> {
     render_pipeline: wgpu::RenderPipeline,
     bind_group: wgpu::BindGroup,
     camera: Camera,
-    camera_uniform_buffer: wgpu::Buffer
+    camera_uniform_buffer: wgpu::Buffer,
+    scene: Scene,
+    light_buffer: wgpu::Buffer
 }
 
 impl<'a> Application<'a> {
@@ -53,9 +55,11 @@ impl<'a> Application<'a> {
 
         let camera_uniform_buffer = camera.get_camera_uniform_buffer(&device);
 
-        let spheres_buffer = Scene::get_sphere_buffer(&device);
+        let scene = Scene::new();
 
-        let light_buffer = Scene::get_light_buffer(&device);
+        let spheres_buffer = scene.get_sphere_buffer(&device);
+
+        let light_buffer = scene.get_light_buffer(&device);
 
         let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("Bind group layout"),
@@ -84,7 +88,7 @@ impl<'a> Application<'a> {
                     binding: 2,
                     visibility: wgpu::ShaderStages::FRAGMENT,
                     ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
+                        ty: wgpu::BufferBindingType::Uniform,
                         has_dynamic_offset: false,
                         min_binding_size: None
                     },
@@ -164,7 +168,9 @@ impl<'a> Application<'a> {
             render_pipeline,
             bind_group,
             camera,
-            camera_uniform_buffer
+            camera_uniform_buffer,
+            scene,
+            light_buffer
         })
     }
 
@@ -180,6 +186,8 @@ impl<'a> Application<'a> {
     }
 
     fn update(&mut self) {
+        self.scene.light_update();
+        self.scene.update_light_buffer(&self.queue, &self.light_buffer);
         self.camera.update_buffer(&self.queue, &self.camera_uniform_buffer);
     }
 
