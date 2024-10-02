@@ -38,7 +38,7 @@ struct Light {
 }
 
 struct Ray {
-    position: vec3<f32>,
+    origin: vec3<f32>,
     direction: vec3<f32>
 }
 
@@ -92,6 +92,8 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
                 ray = bounce_ray;
                 reflection_strength *= intersection.reflectivity;
             } else {
+                color += sky_color(bounce_ray) * reflection_strength;
+
                 break;
             }
         }
@@ -99,7 +101,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
         return vec4<f32>(color, 1.0);
     }
 
-    return vec4<f32>(0.0, 0.0, 0.0, 1.0);
+    return vec4<f32>(sky_color(ray), 1.0);
 }
 
 fn intersect_spheres(intersection: ptr<function, Intersection>, ray: Ray) -> bool {
@@ -107,7 +109,7 @@ fn intersect_spheres(intersection: ptr<function, Intersection>, ray: Ray) -> boo
     var nearest_intersection_distance = 1e30;
 
     for (var i = 0u; i < arrayLength(&spheres); i++) {
-        let sphere_to_ray_position = ray.position - spheres[i].center;
+        let sphere_to_ray_position = ray.origin - spheres[i].center;
         let ray_direction_dot = dot(ray.direction, ray.direction);
         let ray_position_dot = 2.0 * dot(sphere_to_ray_position, ray.direction);
         let sphere_radius_squared = dot(sphere_to_ray_position, sphere_to_ray_position) - spheres[i].radius * spheres[i].radius;
@@ -121,7 +123,7 @@ fn intersect_spheres(intersection: ptr<function, Intersection>, ray: Ray) -> boo
                 nearest_intersection_distance = intersection_distance;
                 has_intersection = true;
                 (*intersection).distance = intersection_distance;
-                (*intersection).position = ray.position + intersection_distance * ray.direction;
+                (*intersection).position = ray.origin + intersection_distance * ray.direction;
                 (*intersection).normal = normalize((*intersection).position - spheres[i].center);
                 (*intersection).color = spheres[i].color;
                 (*intersection).reflectivity = spheres[i].reflectivity;
@@ -150,4 +152,12 @@ fn shade(color: vec3<f32>, position: vec3<f32>, normal: vec3<f32>, view: vec3<f3
 fn in_shadow(shadow_ray: Ray) -> bool {
     var shadow_intersection: Intersection;
     return intersect_spheres(&shadow_intersection, shadow_ray);
+}
+
+fn sky_color(ray: Ray) -> vec3<f32> {
+    let gradient = 0.5 * (normalize(ray.direction).y + 1.0);
+    let top_screen = gradient * vec3<f32>(0.3, 0.5, 1.0);
+    let bottom_screen = (1.0 - gradient) * vec3<f32>(1.0);
+
+    return top_screen + bottom_screen;
 }

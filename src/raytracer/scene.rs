@@ -4,26 +4,26 @@ const SPHERES: [Sphere; 4] = [
     Sphere {
         center: [0.0, 50.6, -1.0],
         radius: 50.0,
-        color: [0.5, 0.5, 0.7],
-        reflectivity: 0.3
+        color: [0.1, 0.1, 0.2],
+        reflectivity: 0.1
     },
     Sphere {
         center: [0.0, 0.11, -2.0],
         radius: 0.5,
-        color: [0.7, 0.0, 0.0],
+        color: [0.5, 0.0, 0.0],
+        reflectivity: 0.5
+    },
+    Sphere {
+        center: [0.8, 0.315, -2.0],
+        radius: 0.3,
+        color: [0.1, 0.2, 0.3],
         reflectivity: 0.7
     },
     Sphere {
-        center: [0.8, 0.31, -2.0],
+        center: [-0.65, 0.306, -1.5],
         radius: 0.3,
-        color: [0.3, 0.5, 0.7],
-        reflectivity: 1.0
-    },
-    Sphere {
-        center: [-0.65, 0.31, -1.5],
-        radius: 0.3,
-        color: [0.3, 0.7, 0.3],
-        reflectivity: 0.5
+        color: [0.3, 0.2, 0.1],
+        reflectivity: 0.3
     }
 ];
 
