@@ -1,29 +1,40 @@
-use bytemuck::{Pod, Zeroable};
+use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::dpi::PhysicalSize;
 
 #[repr(C)]
-#[derive(Clone, Copy, Pod, Zeroable)]
-pub struct CameraUniform {
-    aspect_ratio: f32,
-    width: f32,
-    height: f32
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct CameraUniform {
+    position: [f32; 3],
+    aspect_ratio: f32
 }
 
-impl CameraUniform {
-    pub fn new(width: f32, height: f32) -> CameraUniform {
+pub struct Camera {
+    uniform: CameraUniform
+}
+
+impl Camera {
+    pub fn new(width: u32, height: u32) -> Self {
         Self {
-            aspect_ratio: width / height,
-            width: width - 1.0,
-            height: height - 1.0
+            uniform: CameraUniform {
+                position: [0.0, 0.0, 1.0],
+                aspect_ratio: width as f32 / height as f32,
+            }
         }
     }
 
-    pub fn resize(&mut self, new_size: &PhysicalSize<u32>) {
-        let new_width = new_size.width as f32;
-        let new_height = new_size.height as f32;
+    pub fn resize(&mut self, new_size: PhysicalSize<u32>) {
+        self.uniform.aspect_ratio = new_size.width as f32 / new_size.height as f32;
+    }
 
-        self.aspect_ratio = new_width / new_height;
-        self.width = new_width;
-        self.height = new_height;
+    pub fn get_camera_uniform_buffer(&self, device: &wgpu::Device) -> wgpu::Buffer {
+        device.create_buffer_init(&BufferInitDescriptor {
+            label: Some("Camera uniform buffer"),
+            contents: bytemuck::cast_slice(&[self.uniform]),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST
+        })
+    }
+
+    pub fn update_buffer(&self, queue: &wgpu::Queue, buffer: &wgpu::Buffer) {
+        queue.write_buffer(buffer, 0, bytemuck::cast_slice(&[self.uniform]));
     }
 }
