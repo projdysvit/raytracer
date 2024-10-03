@@ -137,11 +137,10 @@ fn intersect_spheres(intersection: ptr<function, Intersection>, ray: Ray) -> boo
 fn shade(color: vec3<f32>, position: vec3<f32>, normal: vec3<f32>, view: vec3<f32>) -> vec3<f32> {
     var result = vec3<f32>(0.0);
 
-    let to_light = normalize(light.position - position);
-    let shadow_ray = Ray(position + normal * EPSILON, to_light);
+    let light_direction = normalize(light.position - position);
+    let shadow_ray = Ray(position + normal * EPSILON, light_direction);
 
     if !in_shadow(shadow_ray) {
-        let light_direction = normalize(light.position - position);
         let n_dot_l = max(dot(normal, light_direction), 0.0);
         result += color * n_dot_l * vec3<f32>(light.intensity);
     }
