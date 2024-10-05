@@ -26,12 +26,14 @@ struct Sphere {
     center: vec3<f32>,
     radius: f32,
     color: vec3<f32>,
-    reflectivity: f32
+    reflectivity: f32,
+    shininess: f32
 }
 
 struct Light {
     position: vec3<f32>,
-    intensity: f32
+    intensity: f32,
+    color: vec3<f32>
 }
 
 struct Ray {
@@ -44,7 +46,8 @@ struct Intersection {
     position: vec3<f32>,
     normal: vec3<f32>,
     color: vec3<f32>,
-    reflectivity: f32
+    reflectivity: f32,
+    shininess: f32
 }
 
 const MAX_BOUNCES: i32 = 9;
@@ -66,7 +69,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     var ray = Ray(ray_position, ray_direction);
     var intersection: Intersection;
     if intersect_spheres(&intersection, ray) {
-        var color = shade(intersection.color, intersection.position, intersection.normal, -ray.direction);
+        var color = shade(intersection, -ray.direction);
         var reflection_strength = vec3<f32>(intersection.reflectivity);
 
         for (var bounce = 0; bounce < MAX_BOUNCES; bounce++) {
@@ -78,12 +81,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
             var bounce_intersection: Intersection;
             if intersect_spheres(&bounce_intersection, bounce_ray) {
-                color += shade(
-                    bounce_intersection.color,
-                    bounce_intersection.position,
-                    bounce_intersection.normal,
-                    -bounce_ray.direction
-                ) * reflection_strength;
+                color += shade(bounce_intersection, -bounce_ray.direction) * reflection_strength;
 
                 intersection = bounce_intersection;
                 ray = bounce_ray;
@@ -124,6 +122,7 @@ fn intersect_spheres(intersection: ptr<function, Intersection>, ray: Ray) -> boo
                 (*intersection).normal = normalize((*intersection).position - spheres[i].center);
                 (*intersection).color = spheres[i].color;
                 (*intersection).reflectivity = spheres[i].reflectivity;
+                (*intersection).shininess = spheres[i].shininess;
             }
         }
     }
@@ -131,15 +130,20 @@ fn intersect_spheres(intersection: ptr<function, Intersection>, ray: Ray) -> boo
     return has_intersection;
 }
 
-fn shade(color: vec3<f32>, position: vec3<f32>, normal: vec3<f32>, view: vec3<f32>) -> vec3<f32> {
+fn shade(intersection: Intersection, view: vec3<f32>) -> vec3<f32> {
     var result = vec3<f32>(0.0);
 
-    let light_direction = normalize(light.position - position);
-    let shadow_ray = Ray(position + normal * EPSILON, light_direction);
+    let light_direction = normalize(light.position - intersection.position);
+    let shadow_ray = Ray(intersection.position + intersection.normal * EPSILON, light_direction);
 
     if !in_shadow(shadow_ray) {
-        let n_dot_l = max(dot(normal, light_direction), 0.0);
-        result += color * n_dot_l * vec3<f32>(light.intensity);
+        let n_dot_l = max(dot(intersection.normal, light_direction), 0.0);
+        let diffuse = intersection.color * n_dot_l * light.intensity * light.color;
+        let half_vector = normalize(light_direction + view);
+        let n_dot_h = max(dot(intersection.normal, half_vector), 0.0);
+        let specular = light.color * pow(n_dot_h, intersection.shininess) * light.intensity;
+
+        result = diffuse + specular;
     }
 
     return result;

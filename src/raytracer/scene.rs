@@ -5,31 +5,41 @@ const SPHERES: [Sphere; 4] = [
         center: [0.0, 50.6, -1.0],
         radius: 50.0,
         color: [0.1, 0.1, 0.2],
-        reflectivity: 0.1
+        reflectivity: 0.1,
+        shininess: 16.0,
+        _padding: [0.0, 0.0, 0.0]
     },
     Sphere {
         center: [0.0, 0.11, -2.0],
         radius: 0.5,
         color: [0.5, 0.0, 0.0],
-        reflectivity: 0.5
+        reflectivity: 0.5,
+        shininess: 32.0,
+        _padding: [0.0, 0.0, 0.0]
     },
     Sphere {
         center: [0.8, 0.315, -2.0],
         radius: 0.3,
         color: [0.1, 0.2, 0.3],
-        reflectivity: 0.7
+        reflectivity: 0.7,
+        shininess: 64.0,
+        _padding: [0.0, 0.0, 0.0]
     },
     Sphere {
         center: [-0.65, 0.306, -1.5],
         radius: 0.3,
         color: [0.3, 0.2, 0.1],
-        reflectivity: 0.3
+        reflectivity: 0.3,
+        shininess: 24.0,
+        _padding: [0.0, 0.0, 0.0]
     }
 ];
 
 const LIGHT: Light = Light {
-    position: [-100.0, -250.0, 160.0],
-    intensity: 1.0
+    position: [0.0, -50.0, 100.0],
+    intensity: 0.7,
+    color: [1.0, 0.98, 0.92],
+    _padding: 0.0
 };
 
 #[repr(C)]
@@ -38,14 +48,18 @@ struct Sphere {
     center: [f32; 3],
     radius: f32,
     color: [f32; 3],
-    reflectivity: f32
+    reflectivity: f32,
+    shininess: f32,
+    _padding: [f32; 3]
 }
 
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 struct Light {
     position: [f32; 3],
-    intensity: f32
+    intensity: f32,
+    color: [f32; 3],
+    _padding: f32
 }
 
 pub struct Scene {
@@ -80,7 +94,7 @@ impl Scene {
     pub fn light_update(&mut self) {
         let rotation_speed = 0.5;
         let delta_time = 0.01;
-        let orbit_radius = 150.0;
+        let orbit_radius = 500.0;
 
         self.light_rotation_angle += rotation_speed * delta_time;
 
