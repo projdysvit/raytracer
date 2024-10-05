@@ -1,10 +1,7 @@
-var<private> VERTICES: array<vec2<f32>, 6> = array(
-    vec2<f32>(-1.0, 1.0),
+var<private> VERTICES: array<vec2<f32>, 3> = array(
     vec2<f32>(-1.0, -1.0),
-    vec2<f32>(1.0, 1.0),
-    vec2<f32>(1.0, 1.0),
-    vec2<f32>(-1.0, -1.0),
-    vec2<f32>(1.0, -1.0)
+    vec2<f32>(-1.0, 3.0),
+    vec2<f32>(3.0, -1.0)
 );
 
 struct VertexOutput {
